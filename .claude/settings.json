@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jdk-17.0.19.10-hotspot\"; $env:Path = \"$env:JAVA_HOME\\\\bin;$env:Path\"; cmd /c \"echo y | flutter doctor --android-licenses\")",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jdk-17.0.19.10-hotspot\"; $env:Path = \"$env:JAVA_HOME\\\\bin;$env:Path\"; flutter doctor)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jdk-17.0.19.10-hotspot\"; $env:Path = \"$env:JAVA_HOME\\\\bin;$env:Path\"; flutter create --org com.schoolbell --platforms android schoolbell 2>&1)",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+Archbishop Molloy High School - Bell Schedule
+==============================================
+
+Period      Start   End     Alert (3 min early)
+---------   -----   -----   -------------------
+Period 1    8:00    8:41    7:57 AM
+Homeroom    8:45    8:55    8:42 AM
+Period 2    8:59    9:40    8:56 AM
+Period 3    9:44    10:25   9:41 AM
+Period 4    10:29   11:10   10:26 AM
+Period 5    11:14   11:55   11:11 AM
+Period 6    11:59   12:40   11:56 AM
+Period 7    12:44   1:25    12:41 PM
+Period 8    1:29    2:10    1:26 PM
