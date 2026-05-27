@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/period.dart';
 import 'services/location_service.dart';
 import 'services/scheduler.dart';
+import 'services/crash_logger.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -283,7 +285,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.bug_report, color: Colors.red),
+            title: const Text('Crash Log'),
+            subtitle: const Text('View or clear recorded errors'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _showCrashLog,
+          ),
           const SizedBox(height: 80),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showCrashLog() async {
+    final log = await CrashLogger.read();
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Crash Log'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: log.isEmpty
+              ? const Center(child: Text('No crashes recorded.'))
+              : SingleChildScrollView(
+                  child: SelectableText(
+                    log,
+                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                  ),
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: log));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Copied to clipboard')),
+              );
+              Navigator.pop(ctx);
+            },
+            child: const Text('Copy'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await CrashLogger.clear();
+              Navigator.pop(ctx);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Crash log cleared')),
+                );
+              }
+            },
+            child: const Text('Clear', style: TextStyle(color: Colors.red)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
         ],
       ),
     );

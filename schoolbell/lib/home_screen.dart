@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'services/scheduler.dart';
 import 'services/notification_service.dart';
+import 'services/crash_logger.dart';
 import 'models/period.dart';
 import 'settings_screen.dart';
 
@@ -22,6 +24,50 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _requestPermissions();
     _refresh();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkCrashLog());
+  }
+
+  Future<void> _checkCrashLog() async {
+    final log = await CrashLogger.read();
+    if (log.isEmpty || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('App crashed last time'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 300,
+          child: SingleChildScrollView(
+            child: SelectableText(
+              log,
+              style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: log));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Copied to clipboard')),
+              );
+            },
+            child: const Text('Copy'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await CrashLogger.clear();
+              Navigator.pop(ctx);
+            },
+            child: const Text('Clear & dismiss', style: TextStyle(color: Colors.red)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Dismiss'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _requestPermissions() async {
