@@ -263,6 +263,8 @@ main {
   color: var(--gray-500);
   padding-left: 4px;
 }
+.settings-hint { font-size: 10px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.push-status   { font-size: 13px; min-height: 18px; }
 
 .settings-card { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 

@@ -2,6 +2,9 @@
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
+// Set this after deploying the server to Render.com (Settings → Push Server URL)
+const PUSH_SERVER_DEFAULT = '';
+
 const ALERT_MINUTES_BEFORE = 3;
 
 const MOLLOY_DEFAULTS = [
@@ -22,6 +25,7 @@ const DEFAULT_SETTINGS = {
   schoolLng: -73.7949,
   schoolRadius: 300,
   checkLocation: true,
+  pushServer: PUSH_SERVER_DEFAULT,
 };
 
 // ── State ──────────────────────────────────────────────────────────────────
@@ -34,11 +38,12 @@ let deferredInstallPrompt = null;
 
 // ── Boot ───────────────────────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   loadState();
   bindEvents();
   registerSW();
-  requestNotificationPermission();
+  await requestNotificationPermission();
+  setupPush();
   renderHome();
   startPoller();
   watchInstallPrompt();
@@ -88,6 +93,63 @@ function registerSW() {
 async function requestNotificationPermission() {
   if ('Notification' in window && Notification.permission === 'default') {
     await Notification.requestPermission();
+  }
+}
+
+// ── Web Push subscription ──────────────────────────────────────────────────
+
+function urlBase64ToUint8Array(b64) {
+  const pad = '='.repeat((4 - (b64.length % 4)) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return new Uint8Array([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function setupPush() {
+  const server = settings.pushServer;
+  if (!server) return;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if (Notification.permission !== 'granted') return;
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+
+    const resp = await fetch(`${server}/vapid-public-key`);
+    if (!resp.ok) return;
+    const { key } = await resp.json();
+
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(key),
+      });
+    }
+
+    await fetch(`${server}/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sub.toJSON()),
+    });
+
+    // Ping every 4 min to keep the free-tier server awake
+    setInterval(() => fetch(`${server}/ping`).catch(() => {}), 4 * 60 * 1000);
+
+    updatePushStatus('connected');
+  } catch (err) {
+    console.warn('Push setup failed, polling is still active:', err);
+    updatePushStatus('error');
+  }
+}
+
+function updatePushStatus(state) {
+  const el = document.getElementById('push-status');
+  if (!el) return;
+  if (state === 'connected') {
+    el.textContent = '✓ Connected — watch notifications enabled';
+    el.style.color = '#15803d';
+  } else {
+    el.textContent = '⚠ Could not reach server — check URL';
+    el.style.color = '#dc2626';
   }
 }
 
@@ -314,10 +376,11 @@ function renderPeriodList() {
 // ── Settings rendering ─────────────────────────────────────────────────────
 
 function renderSettings() {
-  document.getElementById('input-lat').value    = settings.schoolLat;
-  document.getElementById('input-lng').value    = settings.schoolLng;
-  document.getElementById('input-radius').value = settings.schoolRadius;
+  document.getElementById('input-lat').value         = settings.schoolLat;
+  document.getElementById('input-lng').value         = settings.schoolLng;
+  document.getElementById('input-radius').value      = settings.schoolRadius;
   document.getElementById('toggle-location').checked = settings.checkLocation;
+  document.getElementById('input-push-server').value = settings.pushServer || '';
   renderSettingsPeriods();
 }
 
@@ -446,6 +509,14 @@ function bindEvents() {
     settings.checkLocation = document.getElementById('toggle-location').checked;
     saveSettings();
     alert('Location saved!');
+  });
+
+  // Save push server URL
+  document.getElementById('btn-save-push').addEventListener('click', async () => {
+    const url = document.getElementById('input-push-server').value.trim().replace(/\/$/, '');
+    settings.pushServer = url;
+    saveSettings();
+    await setupPush();
   });
 
   // Add period

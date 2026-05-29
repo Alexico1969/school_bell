@@ -77,6 +77,18 @@
       </section>
 
       <section class="settings-section">
+        <h2 class="settings-label">Push Server <span class="settings-hint">(for watch notifications)</span></h2>
+        <div class="card settings-card">
+          <div class="form-group">
+            <label for="input-push-server">Server URL</label>
+            <input type="url" id="input-push-server" placeholder="https://yourapp.onrender.com" autocomplete="off" />
+          </div>
+          <button id="btn-save-push" class="btn-primary full-width">Save &amp; Connect</button>
+          <div id="push-status" class="push-status"></div>
+        </div>
+      </section>
+
+      <section class="settings-section">
         <h2 class="settings-label">Bell Schedule <span id="period-count"></span></h2>
         <ul id="settings-period-list" class="card settings-period-list"></ul>
         <button id="btn-add-period" class="btn-outline full-width">＋ Add Period</button>

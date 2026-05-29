@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'schoolbell-v1';
+const CACHE = 'schoolbell-v2';
 const ASSETS = ['./', './index.html', './style.css', './app.js', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -20,6 +20,22 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
+  );
+});
+
+// Handle push from server (gives Samsung/Wear OS proper app-level notifications)
+self.addEventListener('push', (e) => {
+  if (!e.data) return;
+  let data;
+  try { data = e.data.json(); } catch { return; }
+  e.waitUntil(
+    self.registration.showNotification(data.title, {
+      body:    data.body,
+      icon:    './icon.svg',
+      badge:   './icon.svg',
+      vibrate: [200, 100, 200, 100, 200],
+      tag:     data.title,
+    })
   );
 });
 
