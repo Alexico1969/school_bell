@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#3730a3" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SchoolBell" />
+  <title>SchoolBell</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Home view ─────────────────────────────────────────── -->
+  <div id="view-home" class="view active">
+    <header class="appbar">
+      <h1>SchoolBell</h1>
+      <button id="btn-settings" class="icon-btn" aria-label="Settings">⚙️</button>
+    </header>
+
+    <div id="install-banner" class="install-banner hidden">
+      <span>Install for offline use &amp; better background alerts</span>
+      <button id="btn-install" class="btn-install">Install</button>
+      <button id="btn-install-dismiss" class="icon-btn install-dismiss" aria-label="Dismiss">✕</button>
+    </div>
+
+    <main>
+      <div id="status-card" class="status-card"></div>
+
+      <section class="card">
+        <div class="section-header">
+          <span class="section-title">Today's Schedule</span>
+          <span class="section-hint">Alert fires 3 min early</span>
+        </div>
+        <ul id="period-list" class="period-list"></ul>
+      </section>
+    </main>
+  </div>
+
+  <!-- ── Settings view ─────────────────────────────────────── -->
+  <div id="view-settings" class="view">
+    <header class="appbar">
+      <button id="btn-back" class="icon-btn" aria-label="Back">←</button>
+      <h1>Settings</h1>
+      <button id="btn-reset" class="icon-btn" title="Reset to Molloy defaults">↺</button>
+    </header>
+
+    <main class="settings-main">
+      <section class="settings-section">
+        <h2 class="settings-label">School Location</h2>
+        <div class="card settings-card">
+          <div class="setting-row">
+            <label for="input-lat">Latitude</label>
+            <input type="number" id="input-lat" step="0.0001" />
+          </div>
+          <div class="setting-row">
+            <label for="input-lng">Longitude</label>
+            <input type="number" id="input-lng" step="0.0001" />
+          </div>
+          <div class="setting-row">
+            <label for="input-radius">Radius (m)</label>
+            <input type="number" id="input-radius" step="10" min="50" max="5000" />
+          </div>
+          <div class="setting-row">
+            <label for="toggle-location">Only alert at school</label>
+            <label class="toggle">
+              <input type="checkbox" id="toggle-location" />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+          <button id="btn-save-location" class="btn-primary full-width">Save Location</button>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2 class="settings-label">Bell Schedule <span id="period-count"></span></h2>
+        <ul id="settings-period-list" class="card settings-period-list"></ul>
+        <button id="btn-add-period" class="btn-outline full-width">＋ Add Period</button>
+      </section>
+    </main>
+  </div>
+
+  <!-- ── Period edit modal ──────────────────────────────────── -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h2 id="modal-title">Add Period</h2>
+      <div class="form-group">
+        <label for="modal-label">Label</label>
+        <input type="text" id="modal-label" placeholder="e.g. Period 1" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="modal-time">Start time</label>
+        <input type="time" id="modal-time" />
+      </div>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn-ghost">Cancel</button>
+        <button id="modal-save" class="btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #app -->
+<script src="app.js"></script>
+</body>
+</html>
