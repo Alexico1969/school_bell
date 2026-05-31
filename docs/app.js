@@ -107,14 +107,25 @@ function urlBase64ToUint8Array(b64) {
 async function setupPush() {
   const server = settings.pushServer;
   if (!server) return;
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-  if (Notification.permission !== 'granted') return;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    updatePushStatus('error', 'Browser does not support push notifications');
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    updatePushStatus('error', 'Notifications blocked — enable in browser settings');
+    return;
+  }
+  if (Notification.permission !== 'granted') {
+    updatePushStatus('error', 'Notification permission not granted — tap Allow when prompted');
+    return;
+  }
 
   try {
+    updatePushStatus('info', 'Connecting…');
     const reg = await navigator.serviceWorker.ready;
 
     const resp = await fetch(`${server}/vapid-public-key`);
-    if (!resp.ok) return;
+    if (!resp.ok) { updatePushStatus('error', `Server error ${resp.status}`); return; }
     const { key } = await resp.json();
 
     let sub = await reg.pushManager.getSubscription();
@@ -136,19 +147,22 @@ async function setupPush() {
 
     updatePushStatus('connected');
   } catch (err) {
-    console.warn('Push setup failed, polling is still active:', err);
-    updatePushStatus('error');
+    console.warn('Push setup failed:', err);
+    updatePushStatus('error', err.message || 'Could not reach server — check URL');
   }
 }
 
-function updatePushStatus(state) {
+function updatePushStatus(state, msg) {
   const el = document.getElementById('push-status');
   if (!el) return;
   if (state === 'connected') {
     el.textContent = '✓ Connected — watch notifications enabled';
     el.style.color = '#15803d';
+  } else if (state === 'info') {
+    el.textContent = msg || '…';
+    el.style.color = '#6b7280';
   } else {
-    el.textContent = '⚠ Could not reach server — check URL';
+    el.textContent = `⚠ ${msg || 'Could not reach server — check URL'}`;
     el.style.color = '#dc2626';
   }
 }
